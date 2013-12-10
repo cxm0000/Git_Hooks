@@ -1,0 +1,40 @@
+#!/usr/bin/env php
+<?php
+
+	$exitStatus = 0;
+	$problemFiles = array();
+	$fileList = array();
+	$arrayExtensions = array(".php", ".html", ".js", ".css", ".scss", ".feature");
+
+	$finfo = new finfo(FILEINFO_MIME);
+
+	// All files to be committed
+	exec("git diff --cached --name-only", $fileList);
+
+	foreach ($fileList as $file) {
+		//get file extension name
+		preg_match('/\.(.*)$/', $file, $fileExtension);
+
+		// only do the check on the preconfigured extensions
+		if (!empty($fileExtension[0]) && in_array($fileExtension[0], $arrayExtensions)) {
+
+			if (!file_exists($file))
+				continue;
+
+			if (strpos($finfo->file($file), 'text') === false)
+				continue;
+
+			if (exec("grep '<<<<<< ' {$file}")) {
+				$problemFiles[] = '  ' . $file;
+				$exitStatus = 1;
+			}
+		}
+	}
+
+	if ($exitStatus == 1) {
+		echo "You seem to have left-over merge marker in the following files:\n\n";
+		echo implode("\n", $problemFiles);
+		echo "\n\nPlease remove them and commit again.\n\n";
+	}
+
+	exit($exitStatus);

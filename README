@@ -1,0 +1,5 @@
+To enable hooks:
+
+1) Create a folder named "hooks" in your git repo ".git" folder(.git is hidden)
+
+2) Rename any file as *.sample to be *
